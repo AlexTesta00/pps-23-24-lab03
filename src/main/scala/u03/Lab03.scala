@@ -7,8 +7,13 @@ import u02.Modules.*
 import u02.Modules.Person.*
 import u03.Sequences.Sequence
 import u03.Stream.iterate
+import u02.AnonymousFunctions.i
+import u03.Stream.take
+import u03.Stream.cons
+import scala.collection.View.Empty
+import u03.Stream.empty
 
-object Sequences: // Essentially, generic linkedlists
+object Sequences:
 
   enum Sequence[E]:
     case Cons(head: E, tail: Sequence[E])
@@ -22,7 +27,13 @@ object Sequences: // Essentially, generic linkedlists
         case _          => 0
 
       // Task 2: svolto da solo
-      def min: Optional[Int] = ???
+      @annotation.tailrec
+      def min: Optional[Int] = l match
+        case Cons(h, t) => t match
+          case Cons(h2,t2) if h <= h2 => Cons(h, t2).min
+          case Nil() => Optional.Just(h)
+          case _ => t.min
+        case Nil() => Optional.Empty()
 
     extension [A](l: Sequence[A])
       def map[B](mapper: A => B): Sequence[B] =
@@ -56,7 +67,8 @@ object Sequences: // Essentially, generic linkedlists
         l match
           case Cons(h, t) => mapper(h).concat(t.flatMap(mapper))
           case _          => Nil()
-
+      
+      @annotation.tailrec
       def foldLeft[B](b: B)(bin: (B, A) => B): B = l match
         case Nil()      => b
         case Cons(h, t) => t.foldLeft(bin(b, h))(bin)
@@ -76,7 +88,6 @@ object Person:
           case _             => Nil()
       )
 
-//Task 6 - 7 - 8
 enum Stream[A]:
   private case Empty()
   private case Cons(head: () => A, tail: () => Stream[A])
@@ -90,6 +101,7 @@ object Stream:
     lazy val tail = tl
     Cons(() => head, () => tail)
 
+  
   def toList[A](stream: Stream[A]): Sequence[A] = stream match
     case Cons(h, t) => Sequence.Cons(h(), toList(t()))
     case _ => Sequence.Nil()
@@ -110,27 +122,21 @@ object Stream:
   def iterate[A](init: => A)(next: A => A): Stream[A] =
     cons(init, iterate(next(init))(next))
 
-  // Task 6
+  // Task 6: svolto da solo
   extension [A](s: Stream[A])
     def takeWhile(p: A => Boolean): Stream[A] = s match
       case Cons(head, tail) if p(head()) => cons(head(), tail().takeWhile(p))
       case _ => Empty()
 
-  //Task 7
-  def fill[A](n: Int)(x: A): Stream[A] = (n > 0) match
+  //Task 7: svolto da solo
+  def fill[A](n: Int)(x: A): Stream[A] = n > 0 match
     case true => cons(x, fill(n - 1)(x))
     case false => Empty()
+  
+  //Task 8 (Pell Number): svolto da solo
+  def pellNumber(): Stream[Int] =
+    def pellStream(n: Int, m:Int): Stream[Int] = 
+      cons(n, pellStream(2 * n + m, n))
+    pellStream(0, 1)
     
-      
-
 end Stream
-
-@main def trySequences =
-  import Sequences.*
-  val l =
-    Sequence.Cons(10, Sequence.Cons(20, Sequence.Cons(30, Sequence.Nil())))
-  //println(Sequence.sum(l)) // 30
-
-  import Sequence.*
-
-  //println(sum(map(filter(l)(_ >= 20))(_ + 1))) // 21+31 = 52
