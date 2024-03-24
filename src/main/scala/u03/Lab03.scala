@@ -68,6 +68,7 @@ object Sequences:
           case Cons(h, t) => mapper(h).concat(t.flatMap(mapper))
           case _          => Nil()
       
+      //Task 4: svolto da solo
       @annotation.tailrec
       def foldLeft[B](b: B)(bin: (B, A) => B): B = l match
         case Nil()      => b
